@@ -1,0 +1,466 @@
+{
+  "name": "Wordpress Lead Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cf7-contact",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        -128
+      ],
+      "id": "dc593fc3-a14d-4a79-bdb7-1bb011aec672",
+      "name": "Recieve contact form information",
+      "webhookId": "6da47c28-bbe7-427a-a95e-a414a7d244f5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d2330b3d-675b-439c-8136-063e3ee6bff2",
+              "leftValue": "={{ $json.body.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        -96
+      ],
+      "id": "f5006560-812f-425c-b08f-d70227086b23",
+      "name": "Validate email"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        320,
+        112
+      ],
+      "id": "8180cc25-2242-4587-aa25-85ab418888a1",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "LB4sFBGYKy5nDZsf",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cab12537-22b5-4d70-b5d2-9c5e5f5d6468",
+              "name": "category",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        752,
+        -48
+      ],
+      "id": "99b7b86f-97e2-4ac2-8182-f6e69f27c508",
+      "name": "Set Contact Category"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "potential_client",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "15ddb4fd-931e-4abe-a95d-fe1396eb34ed"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e3e96d27-6bf9-4731-ba8d-9d97ebe3349a",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "hiring",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "588c0619-e847-4b6c-9dd7-97dc1fc27784",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "general_inquiry",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "93ee791e-d668-467d-94d9-087d4cf9de04",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "spam",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        -32
+      ],
+      "id": "8d1f749c-e821-4967-8353-725c6eb545e2",
+      "name": "Route Contact"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5e6c3501-4192-4a51-bb8b-05b1511d1f8c",
+              "name": "First Name",
+              "value": "={{ $('Validate email').item.json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "4e7e1625-0e76-44fe-965b-d401f817e9a0",
+              "name": "Email",
+              "value": "={{ $('Validate email').item.json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "091e4ebc-8d0b-49ba-8341-953126de74c2",
+              "name": "Description",
+              "value": "={{ $('Validate email').item.json.body.subject + \"\\n\\nMessage:\\n\" + $('Validate email').item.json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "21daf792-5cce-4275-99b8-d0ab693e5c61",
+              "name": "Company",
+              "value": "=Website {{ $json.category }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1248,
+        -192
+      ],
+      "id": "bc457ddc-d1cf-46ae-af52-9e2b480e766d",
+      "name": "Hiring Category"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f349d4eb-ddd5-4381-ad69-03ffa69ceb0a",
+              "name": "First Name",
+              "value": "={{ $('Validate email').item.json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "c6c5be88-ef37-436d-9cf4-72815721b65b",
+              "name": "Email",
+              "value": "={{ $('Validate email').item.json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "117b709b-2388-41fa-957d-83d391efa3dc",
+              "name": "Description",
+              "value": "={{ $('Validate email').item.json.body.subject + \"\\n\\nMessage:\\n\" + $('Validate email').item.json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "21b43efd-0829-40e3-ba84-3e1730850373",
+              "name": "Company",
+              "value": "=Website {{ $json.category }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1248,
+        -32
+      ],
+      "id": "a5d3c06b-7ed6-41c6-99c1-2ab7aacab9f4",
+      "name": "Potential Client Category"
+    },
+    {
+      "parameters": {
+        "resource": "lead",
+        "Company": "={{ $json.Company }}",
+        "lastName": "={{ $json['First Name'] }}",
+        "additionalFields": {
+          "Email": "={{ $json.Email }}",
+          "Lead_Source": "=Website {{ $json.Status }}"
+        }
+      },
+      "type": "n8n-nodes-base.zohoCrm",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        -32
+      ],
+      "id": "bbaf49ed-637a-459d-bbb8-279ea7e1dbf8",
+      "name": "Potential Client Lead Creation",
+      "credentials": {
+        "zohoOAuth2Api": {
+          "id": "yfiKoLhUz94vsk9x",
+          "name": "Zoho account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "lead",
+        "Company": "={{ $json.Company }}",
+        "lastName": "={{ $json['First Name'] }}",
+        "additionalFields": {
+          "Email": "={{ $json.Email }}"
+        }
+      },
+      "type": "n8n-nodes-base.zohoCrm",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        -192
+      ],
+      "id": "f15a5200-3062-42f8-9572-ef4b1488c295",
+      "name": "Hiring Lead Creation",
+      "credentials": {
+        "zohoOAuth2Api": {
+          "id": "yfiKoLhUz94vsk9x",
+          "name": "Zoho account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a contact form classification assistant.\n\nYour job is to classify the submitted contact into exactly ONE of these categories:\n\n- potential_client\n- hiring\n- general_inquiry\n- spam\n\nDefinitions:\n\npotential_client = The person appears interested in hiring, buying, requesting, or discussing professional services.\n\nhiring = The person is contacting us about a job opportunity, recruitment, employment, interview, or freelance work.\n\ngeneral_inquiry = A legitimate message that does not clearly represent a potential client or hiring opportunity.\n\nspam = Promotional spam, scams, irrelevant automated messages, or clearly unwanted content.\n\nReturn ONLY the category name. Do not explain your answer.\n\nContact information:\n\nName: {{ $json.body.name }}\nEmail: {{ $json.body.email }}\nSubject: {{ $json.body.subject }}\nMessage: {{ $json.body.message }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        -48
+      ],
+      "id": "7173dcc9-cae0-4804-a8ee-2846354b1944",
+      "name": "Classify Inquiry",
+      "retryOnFail": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Recieve contact form information": {
+      "main": [
+        [
+          {
+            "node": "Validate email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate email": {
+      "main": [
+        [
+          {
+            "node": "Classify Inquiry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classify Inquiry",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Contact Category": {
+      "main": [
+        [
+          {
+            "node": "Route Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Contact": {
+      "main": [
+        [
+          {
+            "node": "Hiring Category",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Potential Client Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Potential Client Category": {
+      "main": [
+        [
+          {
+            "node": "Potential Client Lead Creation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hiring Category": {
+      "main": [
+        [
+          {
+            "node": "Hiring Lead Creation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Inquiry": {
+      "main": [
+        [
+          {
+            "node": "Set Contact Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "9df99144-8e13-4355-a383-86377a4540c1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "296f9056f15ae67a858101626cce0abb45832485ccdbca923d5887757e5415a1"
+  },
+  "nodeGroups": [],
+  "id": "tCwHq8ONIt8Bq16r",
+  "tags": []
+}
