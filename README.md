@@ -32,38 +32,6 @@ The workflow automates the initial lead-processing process:
 5. Prepare the lead information.
 6. Create a lead in Zoho CRM for potential clients.
 
-## Workflow
-
-The automation follows this process:
-
-
-WordPress Contact Form 7
-          │
-          ▼
-    n8n Webhook
-          │
-          ▼
-    Validate Email
-          │
-          ▼
-    AI Classification
-          │
-          ▼
-     Route Inquiry
-      ┌───┼───────────────┐
-      │   │               │
-      ▼   ▼               ▼
-Potential Hiring     General / Spam
-Client
-  │
-  ▼
-Prepare Lead Data
-  │
-  ▼
-Create Zoho Lead
-  │
-  ▼
-Zoho CRM
 
 
 ### Workflow Components
@@ -111,23 +79,22 @@ The form sends the submission to an n8n Webhook.
 
 The received data includes:
 
-```json
 {
   "name": "James Largo",
   "email": "example@email.com",
   "subject": "Website Development Inquiry",
   "message": "I would like to discuss a website project."
 }
-```
+
 
 n8n accesses these values from the webhook payload using expressions such as:
 
-```text
+
 $json.body.name
 $json.body.email
 $json.body.subject
 $json.body.message
-```
+
 
 ### 2. Validate Email
 
@@ -141,12 +108,12 @@ An AI Agent analyzes the submitted name, subject, and message.
 
 The inquiry is classified into one of four categories:
 
-```text
+
 potential_client
 hiring
 general_inquiry
 spam
-```
+
 
 The classification result is returned through the AI Agent output.
 
@@ -156,13 +123,13 @@ A Switch node examines the AI classification and sends the submission to the app
 
 For example:
 
-```text
+
 potential_client
        ↓
 Prepare Lead Data
        ↓
 Create Zoho Lead
-```
+
 
 Other inquiry types can be connected to their own actions as the automation is expanded.
 
